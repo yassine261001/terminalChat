@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <poll.h>
 
 Command parse_command(const char *s) {
     if (strcmp(s, "help")    == 0) return CMD_HELP;
@@ -16,6 +17,7 @@ void print_help() {
     printf("Help\n");
 }
 
+// listen and bind
 int chat_listen() {
     struct addrinfo hints, *res;
     memset(&hints, 0, sizeof(hints));
@@ -68,7 +70,7 @@ int chat_listen() {
     return conn;
 }
 
-
+// connecting 
 int chat_connect() {
     struct addrinfo hints, *res;
     memset(&hints, 0, sizeof(hints));
@@ -102,4 +104,42 @@ int chat_connect() {
 
     freeaddrinfo(res);
     return sockfd;
+}
+
+void chat_loop(int sock) {
+    char buf[1024];
+
+    // throw away leftover "enter" from scanf in the menu
+    int c;
+    while ((c = getchar()) != '\n' && c!= EOF);
+
+    struct pollfd fds[2] = {
+        { .fd = 0,    .events = POLLIN }, // user
+        { .fd = sock, .events = POLLIN }, // participant
+    };
+
+    printf("Chat started. Enter /quit to leave.\n");
+
+    while (true) {
+        poll(fds, 2, -1);
+
+        // user types something
+        if (fds[0].revents & POLLIN) {
+            if (fgets(buf, sizeof buf, stdin) == NULL) break;
+            if (strcmp(buf, "/quit\n") == 0) break;
+            send(sock, buf, strlen(buf), 0);
+        }
+
+        if (fds[1].revents & POLLIN) {
+            int n = recv(sock, buf, sizeof buf - 1, 0);
+            if (n <= 0) {
+                printf("Other disconnected\n");
+                break;
+            }
+            buf[n] = '\0';
+            printf("Other: %s", buf);
+        }
+    }
+    close(sock);
+    printf("Left chat.\n");
 }

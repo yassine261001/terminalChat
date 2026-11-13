@@ -1,6 +1,5 @@
 #include "chat.h"
 #include <stdio.h>
-#include <stdbool.h>
 
 int main() {
     char cmd[256];
@@ -17,16 +16,17 @@ int main() {
             print_help();
             break;
 
-        case CMD_LISTEN:
-            int socket = chat_listen();
-            if (socket != -1) printf("Got socket %d\n", socket);
+        case CMD_LISTEN: {
+            int sock = chat_listen();
+            if (sock != -1) chat_loop(sock);
             break;
+        }
 
-        case CMD_CONNECT:
-            printf("Connect IP Port...\n");
-            // enter connect loop
-            chat_connect();
+        case CMD_CONNECT: {
+            int sock = chat_connect();
+            if (sock != -1) chat_loop(sock);
             break;
+        }
 
         case CMD_EXIT:
             run = false;
