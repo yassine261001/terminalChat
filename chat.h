@@ -10,3 +10,4 @@ Command parse_command(const char *s);
 
 void print_help();
 int chat_listen();
+int chat_connect();
