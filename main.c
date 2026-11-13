@@ -1,6 +1,7 @@
 #include "chat.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <sys/socket.h>
 
 int main() {
     char cmd[256];
@@ -11,22 +12,25 @@ int main() {
         fflush(stdout);
         scanf("%255s", cmd);
         
-        switch (parse_command(cmd))
-        {
+        switch (parse_command(cmd)) {
+  
         case CMD_HELP:
             print_help();
             break;
+
         case CMD_LISTEN:
-            printf("Listening on Port...\n");
-            // enter chat loop
+            chat_listen();
             break;
+
         case CMD_CONNECT:
             printf("Connect IP Port...\n");
             // enter connect loop
             break;
+
         case CMD_EXIT:
             run = false;
             break;
+
         case CMD_UNKNOWN:
             printf("Unknown command: %s\n", cmd);
             break;
