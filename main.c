@@ -1,11 +1,13 @@
 #include "chat.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 int main() {
     char cmd[256];
     bool run = true;
 
     while (run == true) {
+        printf("Enter 'help' to get started\n");
         printf("> main menu: ");
         fflush(stdout);
         scanf("%255s", cmd);

@@ -14,7 +14,16 @@ Command parse_command(const char *s) {
 }
 
 void print_help() {
-    printf("Help\n");
+    printf( "\n"
+            "Commands:\n"
+            " 'listen'            Wait for a friend to connect (port 8080)\n"
+            " 'connect'           Connect to a friend (ask for their IP)\n"
+            " 'exit'              Quit the program\n"
+            "\n"
+            "In chat:\n"
+            " '/quit'             Leave the chat and return to main menu\n"
+            "\n");
+    
 }
 
 // listen and bind
@@ -118,7 +127,7 @@ void chat_loop(int sock) {
         { .fd = sock, .events = POLLIN }, // participant
     };
 
-    printf("Chat started. Enter /quit to leave.\n");
+    printf("> Chat started. Enter /quit to leave.\n");
 
     while (true) {
         poll(fds, 2, -1);
@@ -128,16 +137,24 @@ void chat_loop(int sock) {
             if (fgets(buf, sizeof buf, stdin) == NULL) break;
             if (strcmp(buf, "/quit\n") == 0) break;
             send(sock, buf, strlen(buf), 0);
+
+            printf("\033[A\r\033[K");       // up one line, to start, erase it
+            printf("You: %s", buf);         // rewrite it as "You: ..."
+            printf("> ");                   // fresh input prompt
+            fflush(stdout);
         }
 
         if (fds[1].revents & POLLIN) {
             int n = recv(sock, buf, sizeof buf - 1, 0);
             if (n <= 0) {
-                printf("Other disconnected\n");
+                printf("\nFriend disconnected\n");
                 break;
             }
             buf[n] = '\0';
-            printf("Other: %s", buf);
+            printf("\r\033[K");
+            printf("Friend: %s", buf);
+            printf("> ");
+            fflush(stdout);
         }
     }
     close(sock);
